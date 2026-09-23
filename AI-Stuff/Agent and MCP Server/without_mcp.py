@@ -7,6 +7,7 @@ Your app owns the tool logic — no external server needed.
 Use case: You're building one app and need custom tools.
 """
 
+import os
 import anthropic
 import json
 
@@ -78,7 +79,14 @@ TOOL_SCHEMAS = [
 # ─── 4. Agentic loop — handles multi-step tool use automatically ───────────────
 
 def run_agent(user_question: str):
-    client = anthropic.Anthropic()
+    # Default LLM model
+    # client = anthropic.Anthropic()
+
+    # LLM call via bounteous gateway
+    client = anthropic.Anthropic(
+    base_url="https://gateway.bounteous.tools",
+    auth_token=os.environ["ANTHROPIC_AUTH_TOKEN"],  # your sk-... gateway key
+)
 
     # When content is provided by user, role will be user. Here content (user question) is user provided, so role is user.
     messages = [{"role": "user", "content": user_question}]
@@ -89,7 +97,7 @@ def run_agent(user_question: str):
     while True:
         # Invoking claude model using claude api
         response = client.messages.create(
-            model="claude-opus-4-5",
+            model="claude-sonnet-4-6",
             max_tokens=1024,
             tools=TOOL_SCHEMAS,          # ← tools declared right here in the call, from these tools LLM check whether a tool is needed or not and if yes which one to use. Then in response it return if tool is required or not.
             messages=messages
